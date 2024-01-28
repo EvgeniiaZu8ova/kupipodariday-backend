@@ -1,26 +1,74 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { FindOneOptions, Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { hashValue } from 'src/utils/hash';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
+
+  async create(user: User): Promise<User> {
+    return this.userRepository.save(user);
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(query: FindOneOptions<User>) {
+    return this.userRepository.findOne(query);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  findById(id: number) {
+    return this.userRepository.findOneBy({ id });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  findMany(query: string) {
+    return this.userRepository.find({
+      where: [{ username: query }, { email: query }],
+    });
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto, user: User) {
+    const { password } = updateUserDto;
+    const userToEdit = await this.findById(id);
+
+    if (!userToEdit) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    if (userToEdit.id !== user.id) {
+      throw new ForbiddenException('Вы не можете редактировать чужой профиль');
+    }
+    if (password) {
+      updateUserDto.password = await hashValue(password);
+    }
+
+    return this.userRepository.save({ ...userToEdit, ...updateUserDto });
+  }
+
+  async removeOne(id: number) {
+    return this.userRepository.delete(id);
+  }
+
+  async signup(createUserDto: CreateUserDto): Promise<User> {
+    const { password } = createUserDto;
+
+    const user = await this.userRepository.create({
+      ...createUserDto,
+      password: await hashValue(password),
+    });
+
+    return this.userRepository.save(user);
   }
 }

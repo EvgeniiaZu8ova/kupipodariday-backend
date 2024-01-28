@@ -1,13 +1,17 @@
 import {
+  IsDateString,
   IsDefined,
-  IsEmail,
+  IsInt,
   IsString,
   IsUrl,
   Length,
-  MinLength,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class UserPublicProfileResponseDto {
+  @IsDefined()
+  @IsInt()
+  id: number;
+
   @IsDefined()
   @IsString()
   @Length(1, 64)
@@ -15,17 +19,18 @@ export class CreateUserDto {
 
   @IsDefined()
   @IsString()
-  @MinLength(2)
-  password: string;
-
-  @IsString()
-  @Length(0, 200)
+  @Length(2, 200)
   about: string = 'Пока ничего не рассказал о себе';
 
+  @IsDefined()
   @IsUrl()
   avatar: string;
 
   @IsDefined()
-  @IsEmail()
-  email: string;
+  @IsDateString()
+  createdAt: Date;
+
+  @IsDefined()
+  @IsDateString()
+  updatedAt: Date;
 }

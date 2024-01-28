@@ -1,4 +1,5 @@
 import { User } from 'src/users/entities/user.entity';
+import { Wish } from 'src/wishes/entities/wish.entity';
 import {
   Column,
   CreateDateColumn,
@@ -20,10 +21,10 @@ export class Offer {
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.offers)
-  user: string;
+  user: User;
 
-  @Column()
-  item: string;
+  @ManyToOne(() => Wish, (wish) => wish.offers)
+  item: Wish;
 
   @Column({
     scale: 2,

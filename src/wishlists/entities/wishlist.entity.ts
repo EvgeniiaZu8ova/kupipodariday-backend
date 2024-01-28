@@ -1,9 +1,12 @@
 import { IsUrl, Length } from 'class-validator';
 import { User } from 'src/users/entities/user.entity';
+import { Wish } from 'src/wishes/entities/wish.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -25,16 +28,13 @@ export class Wishlist {
   name: string;
 
   @Column()
-  @Length(0, 1500)
-  description: string;
-
-  @Column()
   @IsUrl()
   image: string;
 
-  @Column('text', { array: true })
-  items: string[];
-
   @ManyToOne(() => User, (user) => user.wishlists)
   owner: User;
+
+  @ManyToMany(() => Wish)
+  @JoinTable()
+  items: Wish[];
 }
