@@ -57,7 +57,17 @@ export class UsersService {
     return this.userRepository.save({ ...userToEdit, ...updateUserDto });
   }
 
-  async removeOne(id: number) {
+  async removeOne(id: number, user: User) {
+    const userToDelete = await this.findById(id);
+
+    if (!userToDelete) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    if (userToDelete.id !== user.id) {
+      throw new ForbiddenException('Вы не можете удалить чужой профиль');
+    }
+
     return this.userRepository.delete(id);
   }
 
